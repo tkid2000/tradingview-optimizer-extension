@@ -59,7 +59,7 @@ function updateUserUI() {
   plusLogo.style.cssText = 'display:block !important'
   // remove plus upgrade button
   var plusUpgrade = document.getElementById("plusUpgrade")
-  plusUpgrade.style.display = 'none'
+  if (plusUpgrade) plusUpgrade.style.display = 'none'
 }
 
 
