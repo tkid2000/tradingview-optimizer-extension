@@ -1,6 +1,6 @@
 <p align="left">
   <a href="https://optipie.app">
-      <img src="images/optipie_app_logo_lshift2.png" alt="OptiPie" title="OptiPie" align="left"  />
+      <img src="images/optipie_app_logo_lshift2.png" alt="FreeOptiPie" title="FreeOptiPie" align="left"  />
   </a>
   <h1>TradingView Optimizer Extension   </h1>
 </p>
@@ -8,7 +8,7 @@
 [![OptiPie][optipie-badge]][optipie-url]
 [![GNU License][license-badge]][license-url]
 
-OptiPie is an open source strategy optimizer automation tool for TradingView. 
+FreeOptiPie is an open source strategy optimizer automation tool for TradingView.
 
 Easily optimize strategies, store optimization reports and make analysis via simple UI.
 
@@ -46,8 +46,8 @@ All optimization reports are saved to your machine, view or delete any time with
 
 During your Chrome Session, last entered parameter inputs are stored in a state to make updates easier. 
 
-## OptiPie Plus Membership 🌟
-Join the OptiPie Plus Membership, discover amazing features, go beyond the limits! 
+## FreeOptiPie Plus Membership 🌟
+Join the FreeOptiPie Plus Membership, discover amazing features, go beyond the limits!
 
 <ul>
   <h3> ⏰ Multi-Timeframe Optimization </h3>
@@ -61,24 +61,24 @@ Join the OptiPie Plus Membership, discover amazing features, go beyond the limit
 
 <div align="left">
       <a href="https://youtu.be/3nOgFyPmspU">
-         <img src="images/plus-thumbnail.png" alt="OptiPie-Thumbnail" style="width:100%;">
+         <img src="images/plus-thumbnail.png" alt="FreeOptiPie-Thumbnail" style="width:100%;">
       </a>
 </div>
 
-### [Try OptiPie Plus 🌟](https://www.buymeacoffee.com/optipieapp/membership)
+### [Try FreeOptiPie Plus 🌟](https://www.buymeacoffee.com/optipieapp/membership)
 
 ## FAQ ❓ 
 
 ### Is this an official TradingView extension?
-No, OptiPie TradingView Optimizer Extension has no affiliation with TradingView. Read more at [Disclaimer](#disclaimer)
+No, FreeOptiPie TradingView Optimizer Extension has no affiliation with TradingView. Read more at [Disclaimer](#disclaimer)
 
 ### Is it safe to use extension?
 There hasn't been any reported account suspension happened yet but always [Use at Your Own Risk Disclaimer](#use-at-your-own-risk-disclaimer)
 
 ### Why Step Size doesn't work as expected?
-OptiPie Step Size should always match Pinescript Step Size for the given input 'X'.
+FreeOptiPie Step Size should always match Pinescript Step Size for the given input 'X'.
 
-See [How to match different OptiPie Step Size?](https://github.com/OptiPie/tradingview-optimizer-extension/issues/24)
+See [How to match different FreeOptiPie Step Size?](https://github.com/OptiPie/tradingview-optimizer-extension/issues/24)
 
 ### Why clicking Optimize button pops up error message on a different page?
 Make sure that TradingView tab and Strategy Settings window is opened before starting optimization.
@@ -163,7 +163,7 @@ contact@optipie.app
 
 All product and company names are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
 
-Any product names, logos, brands, and other trademarks or images featured or referred to within the optipie.app website or within the OptiPie Optimizer Extension are the property of their respective trademark holders. These trademark holders are not affiliated with OptiPie, our products, or our websites. They do not sponsor or endorse OptiPie or any of our products.
+Any product names, logos, brands, and other trademarks or images featured or referred to within the optipie.app website or within the FreeOptiPie Optimizer Extension are the property of their respective trademark holders. These trademark holders are not affiliated with FreeOptiPie, our products, or our websites. They do not sponsor or endorse FreeOptiPie or any of our products.
 
 TradingView is trademark of their respective owners and are not affiliated, endorsed, connected or sponsored in any way to this website or any of our affiliate sites.
 
