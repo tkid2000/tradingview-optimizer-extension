@@ -52,27 +52,14 @@ updateUserUI()
 
 // non-functional UI changes made with storage
 function updateUserUI() {
-  chrome.storage.local.get("isPlusUser", ({ isPlusUser }) => {
-    if (isPlusUser) {
-      // show plus logo
-      var logo = document.getElementById("normalLogo")
-      logo.style.cssText = 'display:none !important';
-      var plusLogo = document.getElementById("plusLogo")
-      plusLogo.style.cssText = 'display:block !important'
-      // remove plus upgrade button 
-      var plusUpgrade = document.getElementById("plusUpgrade")
-      plusUpgrade.style.display = 'none'
-    } else {
-      // hide plus logo
-      var plusLogo = document.getElementById("plusLogo")
-      plusLogo.style.cssText = 'display:none !important'
-      var logo = document.getElementById("normalLogo")
-      logo.style.cssText = 'display:block !important';
-      // add plus upgrade button 
-      var plusUpgrade = document.getElementById("plusUpgrade")
-      plusUpgrade.style.display = 'block'
-    }
-  });
+  // show plus logo
+  var logo = document.getElementById("normalLogo")
+  logo.style.cssText = 'display:none !important';
+  var plusLogo = document.getElementById("plusLogo")
+  plusLogo.style.cssText = 'display:block !important'
+  // remove plus upgrade button
+  var plusUpgrade = document.getElementById("plusUpgrade")
+  plusUpgrade.style.display = 'none'
 }
 
 
@@ -285,45 +272,17 @@ window.openReportDetail = {
 
 //#endregion
 
-//#region Profile Tab
-let profileTab = document.getElementById("profile-tab")
-profileTab.addEventListener("click", async () => {
-  await createProfileTab()
-})
-
 ProcessPlusFeatures();
 
 // wrap plus feature injector with google auth
 async function ProcessPlusFeatures() {
-  var token = ""
-  await new Promise(resolve => {
-    chrome.runtime.sendMessage({ type: "getAuthToken", isInteractive: false }, function (response) {
-      if (Object.keys(response).length > 0) {
-        token = response.token
-      }
-      resolve();
-    })
-  })
-  if (token === "") {
-    // clean parameter names
-    chrome.storage.local.set({ "tvParameters": null });
-    // Add Parameter Button Event Listener, with 'parameterLimit'
-    addParameter.addEventListener("click", async () => {
-      await addParameterBlock(freeParameterLimit)
-    });
-    chrome.storage.local.set({ "isPlusUser": false });
-    updateUserUI()
-    return
-  }
-  var userInfo;
-  userInfo = await getUserInfo(token)
-  await injectPlusFeatures(userInfo.email)
+  await injectPlusFeatures("unlocked@optipie.app")
 }
 
 // inject plus features for eligible users
 async function injectPlusFeatures(userEmail) {
   var parameterLimit = freeParameterLimit
-  var user = await GetMembershipInfo(userEmail)
+  var user = { is_membership_active: true }
   if (user.is_membership_active) {
     chrome.storage.local.set({ "isPlusUser": true });
     updateUserUI()
@@ -630,78 +589,6 @@ function transformInput(input) {
   }
 }
 
-async function createProfileTab() {
-  var token = ""
-  await new Promise(resolve => {
-    chrome.runtime.sendMessage({ type: "getAuthToken", isInteractive: false }, function (response) {
-      if (Object.keys(response).length > 0) {
-        token = response.token
-      }
-      resolve();
-    })
-  })
-  if (token === "") {
-    setTimeout(() => {
-      hideSkeleton("login", "profile")
-    }, 250);
-    return
-  }
-  var userInfo;
-  userInfo = await getUserInfo(token)
-  setTimeout(() => {
-    hideSkeleton("profile", "profile")
-  }, 250);
-  document.querySelector("#freeUser #userEmail").innerText = userInfo.email
-  var user = await GetMembershipInfo(userInfo.email)
-  if (user.is_membership_active) {
-    document.getElementById("freeUser").style.display = 'none'
-    document.getElementById("paidUser").style.display = 'flex'
-    document.querySelector("#paidUser #userEmail").innerText = userInfo.email
-    var membershipPeriodEndDate = new Date(user.current_membership_period_end * 1000)
-    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    var year = membershipPeriodEndDate.getFullYear();
-    var month = months[membershipPeriodEndDate.getMonth()];
-    var date = membershipPeriodEndDate.getDate();
-    var time = date + ' ' + month + ' ' + year + ' '
-    document.querySelector("#membershipRenewal h6").textContent = time;
-  }
-}
-
-async function getUserInfo(token) {
-  var userInfo = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: {
-      'Authorization': 'Bearer ' + token
-    }
-  })
-    .then(response => response.json())
-
-  return userInfo
-}
-
-
-let loginButton = document.getElementById("loginButton");
-loginButton.addEventListener("click", async () => {
-  chrome.runtime.sendMessage({ type: "getAuthToken", isInteractive: true }, function (response) {
-  })
-});
-
-let logoutButtons = document.querySelectorAll("#logoutButton")
-logoutButtons.forEach(logoutButton => {
-  logoutButton.addEventListener("click", async () => {
-    showSkeleton("profile", "profile")
-    chrome.runtime.sendMessage({ type: "getAuthToken", isInteractive: false }, function (response) {
-      var url = 'https://accounts.google.com/o/oauth2/revoke?token=' + response.token;
-      window.fetch(url);
-    })
-
-    chrome.runtime.sendMessage({ type: "clearAllCachedAuthTokens" })
-    setTimeout(() => {
-      hideSkeleton("login", "profile")
-    }, 250);
-    chrome.storage.local.set({ "isPlusUser": false });
-    updateUserUI()
-  });
-})
 
 
 
@@ -927,10 +814,6 @@ function addTabEventListeners() {
   document.querySelector("#home-tab").addEventListener("click", function () {
     document.body.style.width = '560px'
   })
-
-  document.querySelector("#profile-tab").addEventListener("click", function () {
-    document.body.style.width = '560px'
-  })
 }
 // Refresh table data with refresh button
 function addRefreshDataEventListener() {
@@ -1118,8 +1001,7 @@ function UpdateStrategyReportRow(strategyId, maxProfit) {
 }
 
 async function storageIsPlusUser() {
-  let isPlusUserObj = await chrome.storage.local.get("isPlusUser")
-  return isPlusUserObj?.isPlusUser
+  return true;
 }
 
 async function storageGetTvParameters() {
@@ -1220,36 +1102,7 @@ function flashUpdatedRow(row) {
 
 // plus membership
 async function GetMembershipInfo(userEmail) {
-
-  const opGetMembershipInfoURL = "https://api-stg.optipie.app/api/v1/user/membership/"
-  var request = opGetMembershipInfoURL + userEmail
-  // Make a GET request to auth api
-  var user = await fetch(request)
-    .then(response => {
-      if (!response.ok) {
-        if (response.status === 404) {
-          return {
-            data: {
-              email: userEmail,
-              is_membership_active: false,
-            }
-          }
-        }
-        else {
-          throw new Error('Network response was not ok');
-        }
-      }
-      return response.json();
-    })
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.error("Error: ", error)
-      return null
-    });
-
-  return user;
+  return { is_membership_active: true };
 }
 // Timeframe mapping from long to short name
 var TimeFrameMap = new Map([

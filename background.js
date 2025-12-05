@@ -23,24 +23,6 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   }
 });
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.type === "getAuthToken") {
-    chrome.identity.getAuthToken({ interactive: request.isInteractive }, function (token) {
-      sendResponse({ token: token });
-    });
-  }
-  return true
-});
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.type === "clearAllCachedAuthTokens") {
-    chrome.identity.getAuthToken({ interactive: false }, function (token) {
-      chrome.identity.removeCachedAuthToken({ token: token }, function () { });
-      chrome.identity.clearAllCachedAuthTokens();
-    });
-  }
-  return true
-});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SleepEventStart") {
