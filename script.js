@@ -321,30 +321,26 @@ function prepareInitialReport() {
     let title = document.querySelector("title")?.innerText
     let strategySymbol = title.split(' ')[0]
 
-    let userInputsData = []
+    let parametersList = []
 
     userInputs.forEach((element, index) => {
-        let inputData = {
-            name: element.parameterName,
-            value: "",
-            type: element.type
+        let paramData = {
+            name: element.parameterName || "Unknown",
+            value: ""
         }
 
         switch (element.type) {
             case ParameterType.Numeric:
-                inputData.value = element.start + "→" + element.end;
+                paramData.value = element.start + "→" + element.end
                 break;
             case ParameterType.Checkbox:
-                inputData.value = "on/off";
+                paramData.value = "on/off"
                 break;
             case ParameterType.Selectable:
-                inputData.value = element.options;
+                paramData.value = element.options
                 break;
         }
-
-        if (inputData.name != null) {
-            userInputsData.push(inputData)
-        }
+        parametersList.push(paramData)
     })
 
     let reportDataMessage = {
@@ -353,7 +349,7 @@ function prepareInitialReport() {
         "strategyName": strategyName,
         "symbol": strategySymbol,
         "timePeriod": strategyTimePeriod,
-        "parameters": userInputsData,
+        "parameters": parametersList,
         "maxProfit": maxProfit, // NOT READY
         "reportData": [], // NOT READY
         "status": null, // NOT READY

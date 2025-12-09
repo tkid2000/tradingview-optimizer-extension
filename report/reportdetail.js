@@ -18,19 +18,30 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     const properties = Object.keys(message);
     const values = Object.values(message);
 
+    function escapeHtml(text) {
+      if (!text) return text;
+      return text
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     // popupAction type defines popup html UI actions according to event type
     if (properties[0] === 'popupAction') {
       const popupAction = values[0];
 
       switch (popupAction.event) {
         case reportUpdated:
-          if (popupAction.message.report.strategyID != strategyID){
+          if (popupAction.message.report.strategyID != strategyID) {
             // omit if strategyId does not match 
             break;
           }
           for (const [key, value] of Object.entries(popupAction.message.report.reportData)) {
             let reportDetail = {
-              "parameters": key,
+              "parameters": escapeHtml(key),
               "netProfitAmount": value.netProfit.amount,
               "netProfitPercent": value.netProfit.percent,
               "maxDrawdownAmount": value.maxDrawdown.amount,
@@ -43,9 +54,14 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
               "avgerageBarsInTrades": value?.avgerageBarsInTrades,
             }
             let reportDetailCSV = { ...reportDetail }
+            // Unwrap CSV values to raw for CSV generation (or keep them raw and escape only for HTML table)
+            // But here we are building the object for the table AND CSV.
+            // For CSV we want raw values usually.
+            reportDetailCSV.parameters = key; // Keep raw for CSV
+
             value.detailedParameters.forEach((element, index) => {
               index += 1
-              reportDetail['parameter' + index] = element.value
+              reportDetail['parameter' + index] = escapeHtml(element.value)
               reportDetailCSV[element.name] = element.value
             });
             reportDetailData.push(reportDetail)
@@ -70,7 +86,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 chrome.storage.local.get("report-data-" + strategyID, function (item) {
   var timePeriodValue = Object.values(item)[0].timePeriod
   var values = Object.values(item)[0].reportData
-  
+
   var detailedParameters = Object.values(values)[0].detailedParameters
   var timePeriod = document.querySelector("#timePeriod")
   timePeriod.textContent = timePeriodValue
@@ -82,7 +98,7 @@ chrome.storage.local.get("report-data-" + strategyID, function (item) {
     }
 
     let reportDetail = {
-      "parameters": key,
+      "parameters": escapeHtml(key),
       "netProfitAmount": value.netProfit.amount,
       "netProfitPercent": value.netProfit.percent,
       "maxDrawdownAmount": value.maxDrawdown.amount,
@@ -95,9 +111,11 @@ chrome.storage.local.get("report-data-" + strategyID, function (item) {
       "avgerageBarsInTrades": value?.avgerageBarsInTrades,
     }
     let reportDetailCSV = { ...reportDetail }
+    reportDetailCSV.parameters = key; // Restore raw for CSV
+
     value.detailedParameters.forEach((element, index) => {
       index += 1
-      reportDetail['parameter' + index] = element.value
+      reportDetail['parameter' + index] = escapeHtml(element.value)
       reportDetailCSV[element.name] = element.value
     });
     reportDetailData.push(reportDetail)

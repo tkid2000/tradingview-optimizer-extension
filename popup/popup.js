@@ -184,7 +184,7 @@ async function createReportTable() {
           "date": formattedDate,
           "symbol": value.symbol,
           "timePeriod": value.timePeriod,
-          "parameters": value.parameters,
+          "parameters": formatParameters(value.parameters),
           "maxProfit": value.maxProfit,
           "detail": reportDetailHtml(value.strategyID)
         }
@@ -207,6 +207,37 @@ async function createReportTable() {
 function reportDetailHtml(strategyID) {
   return '<button id="report-detail-button" strategy-id="' + strategyID + '" type="button" class="btn btn-primary btn-sm"><i class="bi bi-clipboard2-data-fill"> Open</i></button>\
   <button id="remove-report" type="button" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>'
+}
+
+function escapeHtml(text) {
+  if (!text) return text;
+  return text
+    .toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatParameters(params) {
+  // Backward compatibility check
+  if (typeof params === 'string') {
+    // We assume old data is trusted or we can't easily fix it without breaking display. 
+    // Ideally we should sanitize it too if possible, but it is already HTML.
+    return params;
+  }
+  if (!Array.isArray(params)) return "";
+
+  return params.map(p => {
+    let displayName = p.name;
+    if (displayName.length > 22) {
+      displayName = displayName.substring(0, 22) + '...';
+      // We can use the tooltip logic here if we wanted to replicate the original behavior safely
+      return `<strong data-bs-toggle="tooltip" title="${escapeHtml(p.name)}">${escapeHtml(displayName)}</strong>: ${escapeHtml(p.value)}`;
+    }
+    return `<strong>${escapeHtml(displayName)}</strong>: ${escapeHtml(p.value)}`;
+  }).join('<br>');
 }
 
 // Add Custom Styles to Columns 
@@ -250,56 +281,6 @@ function strategyNameColumnStyle(value, row, index) {
       'font-weight': '500'
     }
   }
-}
-
-function parametersFormatter(value, row, index) {
-  // Backward compatibility: If value is a string, return it (sanitize if needed, but here we assume legacy data acceptance)
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  // Safe Rendering for new JSON Array data
-  if (Array.isArray(value)) {
-    let htmlOutput = "";
-
-    // Helper to escape HTML characters
-    const escapeHtml = (unsafe) => {
-      if (typeof unsafe !== 'string') return unsafe;
-      return unsafe.replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    };
-
-    value.forEach((param, i) => {
-      let displayName = escapeHtml(param.name);
-      let fullName = escapeHtml(param.name);
-      let val = escapeHtml(param.value);
-      let needsTooltip = false;
-
-      if (fullName.length > 22) {
-        displayName = displayName.substring(0, 22) + '...';
-        needsTooltip = true;
-      }
-
-      let line = "";
-      if (needsTooltip) {
-        line += `<strong data-bs-toggle="tooltip" title="${fullName}">${displayName}</strong>: ${val}`;
-      } else {
-        line += `<strong>${displayName}</strong>: ${val}`;
-      }
-
-      if (i < value.length - 1) {
-        line += "<br>";
-      }
-      htmlOutput += line;
-    });
-
-    return htmlOutput;
-  }
-
-  return "-";
 }
 
 
