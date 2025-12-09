@@ -4,69 +4,40 @@ title: "News"
 ---
 
 ## What's New!
-### Real-time Report Monitoring & Instant Analysis!
-> No delays. No data loss. Analyze instantly.
 
-- Selectable parameters bug is fixed.
-- Multi-time Frame optimization bug is fixed.
-- Optimization performance is improved.
-- Improved support for non-English languages.
-- Keeping up with the TradingView UI updates to keep extension functional.
+### 🚀 Introducing PiOptimator!
+> **PiOptimator** is a powerful **fork of OptiPie**, bringing you enhanced features for free!
 
-### Version: v1.4.3
+We built upon the solid foundation of OptiPie 1.4.3 to unlock more potential for every trader.
 
-## Previous Updates
+#### ✨ Fork Highlights & New Free Features
+- **Project Structure:** PiOptimator is a distinct fork.
+- **Visual Identity:** Fresh new look with updated graphics and UI to distinguish from the original.
+- **Unlocked Potential:** Features that were previously restricted or paid are now available or enhanced.
+- **Documentation:** Rewritten guides to focus on PiOptimator's specific capabilities.
 
-### Start Optimizing Selectable and Checkbox Inputs 
-> Checkbox and Selectable inputs are now optimizable, exclusive to Plus users.
+#### 🛠 Recent Optimizations & Modifications
+- **Performance Boost:** Significant improvements in optimization speed and stability.
+- **Multi-Language Support:** Enhanced compatibility for global traders.
+- **Deep Backtesting:** Validated and improved deep backtesting execution.
+- **Parameters:** Fixed issues with selectable and checkbox inputs.
+- **UI Sync:** Synced with the latest TradingView interface changes.
+- **Bug Fixes:** Resolved issues with DatePicker and multi-timeframe optimization.
 
-- OptiPie is synced with the latest TradingView changes
-- Deepback testing issue is resovled. 
-- DatePicker causing an issue with the optimization process has been fixed.
-- Improved user experience when navigating through different strategies.
-- **Convenient and Cleaner Report Summary** for Plus users.
-- Optimization speed has been updated and balanced.  
+### Version: v2.0.0 (PiOptimator Fork Launch)
 
-### Latest Version: v1.3.0 - v1.3.4
+---
 
-### Version: v1.2.7
+## Startup History
 
-### Deep Backtesting is now supported! 📢
-> Optimize with Deep Backtesting mode, available for both Plus and Free users.
+### OptiPie Origins (Upstream Project)
+Before forking to PiOptimator, the original tool grew through significant updates:
 
-Stay tuned for **Upcoming release**!
+- **v1.4.3:** Real-time report monitoring, instant analysis, and critical bug fixes.
+- **v1.3.0:** Introduced optimizing *Selectable* and *Checkbox* inputs for Plus users.
+- **v1.2.7:** Deep Backtesting support rolled out for all users.
+- **v1.2.5:** Dynamic iteration counters and clearer report summaries.
+- **v1.2.1:** Increased parameter limits (5 for Free, 20 for Plus).
+- **v1.2.0:** Flexible 'Step Size' inputs and background tab optimization improvements.
 
-**Selectable** and **Checkbox** inputs will be available for optimization, exclusive to **Plus members**
-
-### Version: v1.2.5 - v1.2.6
-
-- **Know how big your optimization will be**, number of iterations for given parameters are dynamically shown at the top-right corner.
-- Fixed an issue if optimization report has a missing field, do not fail to capture rest of the data for that step.
-- Fixed an issue where some of non English languages were not working properly with OptiPie.
-
-### Version: v1.2.2 - v1.2.4
-
-- Due to recent TradingView updates, OptiPie was failing to run an optimization.
-
-- Problem is now resolved as Chrome approved the release.
-
-- **Please make sure OptiPie version is updated to v1.2.4, if not please follow the link below**
-
-- [Guide - How to update Chrome Extension Manually](https://help.qlik.com/talend/en-US/api-tester-user-guide/Cloud/updating-chrome-extension)
-
-### Version: v1.2.1
-
-- Parameter Limits are increased! 🔓 
-    - OptiPie - increased from 4 to **5** Parameters
-    - OptiPie Plus - increased from 8 to **20** Parameters
-   
-- Execution speed for the optimization process has been further improved, along with the mitigation of edge-case issues.
-
-### Version: v1.2.0
-
-- Enter any **'Step size'** now! 
-
-    > Step Size value no longer needs to match with Pinescript's Step Size value.
-   
-- Execution speed for the optimization process has been drastically improved, especially when the optimizing tab is **inactive** 
-- Fixed an issue of not generating report when initial strategy tester parameter value(s) is identical with the OptiPie **start** value(s)
+*Thank you for being part of our journey as we transition to PiOptimator!*

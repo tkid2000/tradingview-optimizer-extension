@@ -1,10 +1,10 @@
 main:
   - title: "Try Plus"
-    url: "https://www.buymeacoffee.com/optipieapp/membership"
+    url: "#"
   - title: "Download"
-    url: "https://chrome.google.com/webstore/detail/optipie-tradingview-optim/fdndgpohalkoklpaopahkblpomlhmifm"
+    url: "https://chrome.google.com/webstore/detail/pioptimator"
   - title: "Github"
-    url: https://github.com/OptiPie/tradingview-optimizer-extension
+    url: #
   - title: "FAQ"
     url: /#faq-
   - title: "Contribution"

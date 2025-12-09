@@ -7,14 +7,14 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     var notification = values[0]
     if (notification.type === 'warning') {
       chrome.notifications.create(`notify-${Date.now()}`, {
-        title: 'FreeOptiPie - Warning',
+        title: 'PiOptimator - Warning',
         message: notification.content,
         iconUrl: 'images/warning30.png',
         type: 'basic'
       });
     } else if (notification.type === 'success') {
       chrome.notifications.create(`notify-${Date.now()}`, {
-        title: 'FreeOptiPie - Success',
+        title: 'PiOptimator - Success',
         message: notification.content,
         iconUrl: 'images/success30.png',
         type: 'basic'
@@ -26,18 +26,18 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SleepEventStart") {
-      const delay = message.delay || 3000;
-      setTimeout(() => {
-          sendResponse({ type: "SleepEventComplete" });
-      }, delay);
-      // Return true to indicate that the response will be sent asynchronously
-      return true;
+    const delay = message.delay || 3000;
+    setTimeout(() => {
+      sendResponse({ type: "SleepEventComplete" });
+    }, delay);
+    // Return true to indicate that the response will be sent asynchronously
+    return true;
   }
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === "update"){
-    chrome.tabs.create({url: "https://optipie.app/news/", active: true});
+  if (details.reason === "update") {
+    chrome.tabs.create({ url: "https://optipie.app/news/", active: true });
   }
 })
 
