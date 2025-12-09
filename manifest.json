@@ -1,7 +1,7 @@
 {
   "name": "FreeOptiPie TradingView Optimizer",
   "description": "TradingView Parameter Optimizer as an extension",
-  "version": "1.4.3",
+  "version": "1.0.1",
   "manifest_version": 3,
   "icons": {
     "16": "images/icons/optipie16.png",
@@ -39,6 +39,6 @@
     }
   ],
   "host_permissions": [
-    "https://*.optipie.app/*"
+    "https://github.com/tkid2000/tradingview-optimizer-extension*"
   ]
 }
