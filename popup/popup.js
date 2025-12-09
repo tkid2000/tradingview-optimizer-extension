@@ -104,7 +104,8 @@ optimize.addEventListener("click", async () => {
 
     return
   }
-  chrome.storage.local.set({ "userInputs": userInputs });
+  let totalIterations = document.getElementById("value").innerText.replace(/,/g, ''); // Remove commas if any
+  chrome.storage.local.set({ "userInputs": userInputs, "totalIterations": totalIterations });
 
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
@@ -186,6 +187,8 @@ async function createReportTable() {
           "timePeriod": value.timePeriod,
           "parameters": value.parameters,
           "maxProfit": value.maxProfit,
+          "currentIteration": value.currentIteration,
+          "totalIterations": value.totalIterations,
           "detail": reportDetailHtml(value.strategyID)
         }
         reportData.push(report)

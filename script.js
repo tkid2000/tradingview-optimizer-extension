@@ -38,6 +38,27 @@ Process()
 
 async function Process() {
     var shouldStop = false;
+    let totalIterations = 0
+    let currentIteration = 0
+
+    //Get User Inputs from Storage
+    chrome.storage.local.get("userInputs", function (result) {
+        if (result.userInputs != null) {
+            userInputs = result.userInputs.parameters
+            userInputs.forEach((element, index) => {
+                if (element.type == ParameterType.Numeric) {
+                    userInputs[index].parameterIndex = index
+                    userNumericInputs.push(userInputs[index])
+                }
+            });
+        }
+    });
+
+    chrome.storage.local.get("totalIterations", function (result) {
+        if (result.totalIterations != null) {
+            totalIterations = result.totalIterations
+        }
+    })
     //Construct UserInputs with callback
     var userInputsEventCallback = (event) => {
         let message = event.data
@@ -356,7 +377,11 @@ function prepareInitialReport() {
         "parameters": userInputsData,
         "maxProfit": maxProfit, // NOT READY
         "reportData": [], // NOT READY
+        "maxProfit": maxProfit, // NOT READY
+        "reportData": [], // NOT READY
         "status": null, // NOT READY
+        "currentIteration": currentIteration,
+        "totalIterations": totalIterations
     }
 
     return reportDataMessage
@@ -538,6 +563,7 @@ function saveOptimizationReport(optimizationResult, reportData) {
         if (error != null) {
             return error.message
         }
+        currentIteration++
         reportData.detailedParameters = result.detailedParameters
         optimizationHistory.set(parameters, true)
         optimizationResult.set(parameters, reportData)
