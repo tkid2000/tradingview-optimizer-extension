@@ -119,15 +119,22 @@ if (isInjected) {
 //Inject script into DOM to get access to React Props
 function InjectScriptIntoDOM() {
   //Is TradingView Strategy Settings window opened validation
-  if (document.querySelectorAll("div[data-name=indicator-properties-dialog]").length < 1) {
+  if (document.querySelectorAll("div[data-name='indicator-properties-dialog']").length < 1) {
     return false
   }
-  var s = document.createElement('script');
-  s.src = chrome.runtime.getURL('script.js');
-  s.onload = function () {
+  var selectorsScript = document.createElement('script');
+  selectorsScript.src = chrome.runtime.getURL('selectors.js');
+  selectorsScript.onload = function () {
     this.remove();
+    // Inject script.js only after selectors.js is loaded
+    var s = document.createElement('script');
+    s.src = chrome.runtime.getURL('script.js');
+    s.onload = function () {
+      this.remove();
+    };
+    (document.head || document.documentElement).appendChild(s);
   };
-  (document.head || document.documentElement).appendChild(s);
+  (document.head || document.documentElement).appendChild(selectorsScript);
 
   // Retrieve the UserInputs from local storage and send them as message to script.js
   chrome.storage.local.get("userInputs", ({ userInputs }) => {

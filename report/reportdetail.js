@@ -1,6 +1,17 @@
 // Popup action event types
 const reportUpdated = 'reportUpdated'
 
+function escapeHtml(text) {
+  if (!text) return text;
+  return text
+    .toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, prop) => searchParams.get(prop),
 });
@@ -17,18 +28,6 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   (async () => {
     const properties = Object.keys(message);
     const values = Object.values(message);
-
-    function escapeHtml(text) {
-      if (!text) return text;
-      return text
-        .toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
     // popupAction type defines popup html UI actions according to event type
     if (properties[0] === 'popupAction') {
       const popupAction = values[0];

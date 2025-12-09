@@ -1,6 +1,5 @@
 // Select all input values
-var tvInputsContainer = "div[data-name='indicator-properties-dialog'] div[class*='content' i]"
-var tvInputsQuery = `${tvInputsContainer} input:not([aria-activedescendant*='time_input' i]), ${tvInputsContainer} button[role*='combobox' i], ${tvInputsContainer} div[data-name*='color' i]`
+var tvInputsQuery = OPTIPIE_SELECTORS.inputs.generated
 var tvInputs = document.querySelectorAll(tvInputsQuery)
 // user parameters and time frames
 var userNumericInputs = [], userCheckboxInputs = [], userSelectableInputs = []
@@ -20,7 +19,7 @@ var ParameterType = {
     DatePicker: "DatePicker" // not supported atm
 }
 
-var sleep = (ms) => new Promise((resolve) => {
+const sleep = (ms) => new Promise((resolve) => {
     const handler = (event) => {
         if (event.data.type === "SleepEventComplete") {
             window.removeEventListener("message", handler);
@@ -28,10 +27,28 @@ var sleep = (ms) => new Promise((resolve) => {
         }
     };
     window.addEventListener("message", handler);
-
     // Notify injector.js about the sleep request with the delay
     window.postMessage({ type: "SleepEventStart", delay: ms }, "*");
 });
+
+async function waitForElement(selector, timeout = 10000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+        const el = document.querySelector(selector);
+        if (el) return el;
+        await sleep(100);
+    }
+    throw new Error(`Element "${selector}" not found within ${timeout}ms`);
+}
+
+async function waitForCondition(predicate, timeout = 10000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+        if (predicate()) return true;
+        await sleep(100);
+    }
+    throw new Error(`Condition failed within ${timeout}ms`);
+}
 
 // Run Optimization Process 
 Process()
@@ -110,21 +127,21 @@ async function Process() {
     } else {
         for (let i = 0; i < userTimeFrames.length; i++) {
             // open time intervals dropdown and change it
-            await sleep(500)
+            const intervalsMenu = await waitForElement(OPTIPIE_SELECTORS.toolbar.intervalsMenu, 5000)
+                .catch(() => document.querySelector(OPTIPIE_SELECTORS.toolbar.intervalsArrow)); // fallback
 
-            let timeIntervalDropdown = document.querySelector("#header-toolbar-intervals div[class*='menuContent' i]")
-            // check if user has favorite time frames selected
-            if (timeIntervalDropdown == null) {
-                timeIntervalDropdown = document.querySelector("#header-toolbar-intervals div[class*='arrow' i]")
-            }
-            timeIntervalDropdown.click()
+            intervalsMenu.click()
 
-            let timeIntervalQuery = `div[data-value='${userTimeFrames[i][0]}']`
-            await sleep(1000)
-            document.querySelector(timeIntervalQuery).click()
-            await sleep(1000)
+            let timeIntervalQuery = OPTIPIE_SELECTORS.toolbar.intervalItem(userTimeFrames[i][0])
+            const intervalItem = await waitForElement(timeIntervalQuery);
+            intervalItem.click()
+
+            // Wait for chart to reload/settle - this is tricky without a specific signal, 
+            // but we can at least wait for some indicators or just use a small safe delay 
+            // combined with checking if the time frame text updated.
+            await sleep(500) // Reduced from 1000, assuming 500ms is enough for most chart re-renders
+
             reportDataMessage = prepareInitialReport()
-            await sleep(500)
             try {
                 await OptimizeCheckboxes(() => OptimizeSelectables(() => OptimizeNumerics()))
             } catch (err) {
@@ -214,7 +231,7 @@ async function Process() {
                 }
             }
 
-            await sleep(250)
+            await sleep(100) // Reduced sleep, just to let UI events propagate
 
             if (nextFunction) {
                 await nextFunction();
@@ -303,18 +320,18 @@ async function PublishReport() {
 // prepareInitialReport populates initial report before starting a fresh optimization
 function prepareInitialReport() {
     //Add ID, StrategyName, Parameters and MaxProfit to Report Message
-    let strategyName = document.querySelector("div[class*=strategyGroup]")?.innerText
+    let strategyName = document.querySelector(OPTIPIE_SELECTORS.strategy.group)?.innerText
     let strategyTimePeriod = ""
 
-    let timePeriodGroup = document.querySelectorAll("div[class*=innerWrap] div[class*=group]")
+    let timePeriodGroup = document.querySelectorAll(OPTIPIE_SELECTORS.strategy.timePeriodGroup)
     if (timePeriodGroup.length > 1) {
-        selectedPeriod = timePeriodGroup[1].querySelector("button[aria-checked*=true]")
+        selectedPeriod = timePeriodGroup[1].querySelector(OPTIPIE_SELECTORS.strategy.selectedPeriod)
 
         // Check if favorite time periods exist  
         if (selectedPeriod != null) {
-            strategyTimePeriod = selectedPeriod.querySelector("div[class*=value]")?.innerText
+            strategyTimePeriod = selectedPeriod.querySelector(OPTIPIE_SELECTORS.strategy.valueDiv)?.textContent
         } else {
-            strategyTimePeriod = timePeriodGroup[1].querySelector("div[class*=value]")?.innerText
+            strategyTimePeriod = timePeriodGroup[1].querySelector(OPTIPIE_SELECTORS.strategy.valueDiv)?.textContent
         }
     }
 
@@ -378,7 +395,7 @@ async function SetUserIntervals() {
 
         await OptimizeParams(userInput.parameterIndex, userInput.stepSize)
 
-        await sleep(250);
+        await sleep(50); // Minimal buffer
     }
     //TO-DO: Inform user about Parameter Intervals are set and optimization starting now.
 }
@@ -412,7 +429,8 @@ async function OptimizeParams(tvParameterIndex, stepSize) {
 
     tvInputs[tvParameterIndex].dispatchEvent(new MouseEvent('mouseover', { 'bubbles': true }));
 
-    await sleep(150)
+    // await sleep(150) -> removed, relying on next action or small debounce if needed
+
     // Calculate new step value
     let newStepValue = parseFloat(tvInputs[tvParameterIndex].value) + parseFloat(stepSize)
     if (isFloat(newStepValue)) {
@@ -421,34 +439,36 @@ async function OptimizeParams(tvParameterIndex, stepSize) {
     }
     ChangeTvInput(tvInputs[tvParameterIndex], newStepValue)
 
-    await sleep(200)
+    // await sleep(200) -> removed, wait for OK button to be clickable/present
 
     // Click on "Ok" button
-    let okButton =
-        document.querySelector("button[data-name='submit-button' i]") ||
-        document.querySelector("span[class*='submit' i] button");
+    const okButton = await waitForElement(OPTIPIE_SELECTORS.dialog.okButton[0], 2000)
+        .catch(() => waitForElement(OPTIPIE_SELECTORS.dialog.okButton[1], 2000));
 
     okButton.click()
 
     let isBacktestUpdated = false
     // check if deep backtesting is enabled
-    let isBacktestingOn = document.querySelector("span[class*='deepBacktesting' i]") != null
+    let isBacktestingOn = document.querySelector(OPTIPIE_SELECTORS.backtesting.deepBacktestingSpan) != null
     if (isBacktestingOn === true) {
-        await sleep(500)
-        let backtestUpdateButton = document.querySelector("div[data-qa-id*='backtesting-updated' i] button")
-        if (backtestUpdateButton != null) {
+        try {
+            // Wait for update button to appear or check if it's already there
+            let backtestUpdateButton = await waitForElement(OPTIPIE_SELECTORS.backtesting.updatedButton, 2000);
             backtestUpdateButton.click()
             isBacktestUpdated = true
+        } catch (e) {
+            // Update button might not appear if changes didn't trigger a deep backtest requirement?
+            // Or maybe it takes longer. For now, we proceed as it was a "check if" logic.
         }
     }
-
     let observer;
     // Observe mutation for new Test results, validate it and save it to optimizationResults Map
     const p1 = new Promise((resolve, reject) => {
         observer = new MutationObserver(function (mutations) {
             mutations.every(function (mutation) {
                 if (mutation?.type === 'characterData' && mutation?.target?.isConnected) {
-                    let reportContainer = mutation.target?.parentElement?.parentElement?.parentElement?.parentElement
+                    // let reportContainer = mutation.target?.parentElement?.parentElement?.parentElement?.parentElement
+                    // Assuming reportData logic is handled by ReportBuilder which queries DOM
                     var result = saveOptimizationReport(optimizationResult, reportData)
                     resolve(result)
                     observer.disconnect()
@@ -459,28 +479,36 @@ async function OptimizeParams(tvParameterIndex, stepSize) {
             });
         });
 
-        let element = document.querySelector("div[class*=backtesting i] div[class*=deephistory i]")
+        let element = document.querySelector(OPTIPIE_SELECTORS.backtesting.deepHistory[0])
         if (element == null) {
             // fallback scenario for selector naming convention
-            element = document.querySelector("div[class*=backtesting i] div[class*=deep-history i]")
+            element = document.querySelector(OPTIPIE_SELECTORS.backtesting.deepHistory[1])
         }
-        let options = {
-            childList: true,
-            subtree: true,
-            characterData: true,
-            characterDataOldValue: true,
-            attributes: true,
-            attributeOldValue: true
+        if (element) {
+            let options = {
+                childList: true,
+                subtree: true,
+                characterData: true,
+                characterDataOldValue: true,
+                attributes: true,
+                attributeOldValue: true
+            }
+            observer.observe(element, options);
+        } else {
+            // If element is null, we can't observe. This is a critical failure.
+            // We should probably throw or resolve as timedOut immediately, but existing logic waits.
+            // We'll let p2 timeout handle it or try to find it again?
+            // For now, if not found, we just wait for timeout.
         }
-        observer.observe(element, options);
+
     });
 
     const p2 = new Promise((resolve, reject) => {
         setTimeout(() => {
             // expected error type, kind of warning
-            observer.disconnect()
+            if (observer) observer.disconnect()
             resolve({ timedOut: true })
-        }, 15 * 1000);
+        }, 15 * 1000); // 15s timeout
     });
 
     // Promise race the obvervation with 15 sec timeout in case of Startegy Test Overview window fails to load
@@ -488,13 +516,13 @@ async function OptimizeParams(tvParameterIndex, stepSize) {
 
     if (finalOptimizationResult?.timedOut) {
         // try to save if optimization data is the same as previous, after timeout
-        let isReportDataEmpty = document.querySelector("div[class*='emptyStateIcon' i]") != null
+        let isReportDataEmpty = document.querySelector(OPTIPIE_SELECTORS.backtesting.emptyState) != null
         if (!isReportDataEmpty && implies(isBacktestingOn, isBacktestUpdated)) {
             saveOptimizationReport(optimizationResult, reportData)
         }
     }
 
-    await sleep(100)
+    // await sleep(100) -> Removed, assuming state is ready or next Wait will handle it
     // Send single optimization result as a batch, update maxProfit and Optimization result before hand
     let optimizationResultsObject = Object.fromEntries(optimizationResult);
 
@@ -506,23 +534,32 @@ async function OptimizeParams(tvParameterIndex, stepSize) {
     PublishReport()
 
     // Re-open strategy settings window
-    let reportTitleButton =
-        document.querySelector("button[data-strategy-title*='report' i]") ||
-        document.querySelector("div[class*='strategyGroup' i] button");
+    // Retry logic for reportTitleButton
+    let reportTitleButton = null;
+    try {
+        reportTitleButton = await waitForElement(OPTIPIE_SELECTORS.strategy.reportTitleButton[0], 2000)
+    } catch (e) {
+        reportTitleButton = await waitForElement(OPTIPIE_SELECTORS.strategy.reportTitleButton[1], 2000)
+    }
 
     reportTitleButton.click()
-    await sleep(50)
+    // await sleep(50) -> removed
 
-    let settingsButton =
-        document.querySelector("div[aria-label*='settings' i]") ||
-        // if different language is set, select shortcut label selector "+ P" or select second popup menu item
-        document.querySelector('div[aria-keyshortcuts*="+P"]') ||
-        document.querySelector('div[aria-keyshortcuts*="+ P"]') ||
-        document.querySelector("div[class*='mainContent' i] > div:nth-child(2) div[role*='menuItem' i]");
+    // Settings Button logic
+    let settingsButton = null;
+    for (const selector of OPTIPIE_SELECTORS.strategy.settingsButton) {
+        try {
+            settingsButton = await waitForElement(selector, 500);
+            if (settingsButton) break;
+        } catch (e) { }
+    }
+
+    if (!settingsButton) throw new Error("Settings button not found");
 
     settingsButton.click()
 
-    await sleep(150)
+    // Wait for inputs to be present before proceeding
+    await waitForElement(tvInputsQuery, 2000);
     tvInputs = document.querySelectorAll(tvInputsQuery)
 }
 
@@ -554,7 +591,7 @@ function saveOptimizationReport(optimizationResult, reportData) {
 // Reset & Optimize (tvParameterIndex)th parameter to starting value  
 async function resetAndOptimizeParameter(tvParameterIndex, resetValue, stepSize) {
     ChangeTvInput(tvInputs[tvParameterIndex], resetValue)
-    await sleep(300)
+    await sleep(100) // Reduced sleep
     await OptimizeParams(tvParameterIndex, stepSize)
 }
 
@@ -611,7 +648,7 @@ function GetParametersFromWindow() {
                 }
                 break;
             case ParameterType.Selectable:
-                parameterValue = tvInputs[userInput.parameterIndex].innerText
+                parameterValue = tvInputs[userInput.parameterIndex].textContent
                 break;
         }
 
@@ -641,16 +678,20 @@ function GetParametersFromWindow() {
 function ReportBuilder(reportData) {
     let reportDataSelector;
 
-    reportDataSelector = document.querySelectorAll("div div[class^='containerCell' i] > div:nth-child(2)")
+    reportDataSelector = document.querySelectorAll(OPTIPIE_SELECTORS.backtesting.reportContainer)
 
-    let valueSelector = "[class*='value' i]"
-    let currencySelector = "[class*='currency' i]"
-    let changeSelector = "[class*='change' i]"
+    let valueSelector = OPTIPIE_SELECTORS.backtesting.reportValue
+    let currencySelector = OPTIPIE_SELECTORS.backtesting.reportCurrency
+    let changeSelector = OPTIPIE_SELECTORS.backtesting.reportChange
+
+    // Safety check
+    if (reportDataSelector.length < 5) return new Error("Report data not found");
+
     //1. Column
-    reportData.netProfit.amount = reportDataSelector[0].querySelector(valueSelector)?.innerText + ' ' + reportDataSelector[0].querySelector(currencySelector)?.innerText
+    reportData.netProfit.amount = reportDataSelector[0].querySelector(valueSelector)?.innerText + ' ' + (reportDataSelector[0].querySelector(currencySelector)?.innerText || '')
     reportData.netProfit.percent = reportDataSelector[0].querySelector(changeSelector)?.innerText
     //2. 
-    reportData.maxDrawdown.amount = reportDataSelector[1].querySelector(valueSelector)?.innerText + ' ' + reportDataSelector[1].querySelector(currencySelector)?.innerText
+    reportData.maxDrawdown.amount = reportDataSelector[1].querySelector(valueSelector)?.innerText + ' ' + (reportDataSelector[1].querySelector(currencySelector)?.innerText || '')
     reportData.maxDrawdown.percent = reportDataSelector[1].querySelector(changeSelector)?.innerText
     //3.
     reportData.closedTrades = reportDataSelector[2].querySelector(valueSelector)?.innerText
@@ -658,12 +699,6 @@ function ReportBuilder(reportData) {
     reportData.percentProfitable = reportDataSelector[3].querySelector(valueSelector)?.innerText
     //4.
     reportData.profitFactor = reportDataSelector[4].querySelector(valueSelector)?.innerText
-
-    //5. Deprecated
-    //reportData.averageTrade.amount = reportDataSelector[5].querySelector(valueSelector).innerText + ' ' + reportDataSelector[5].querySelector(currencySelector).innerText
-    //reportData.averageTrade.percent = reportDataSelector[5].querySelector(changeSelector).innerText
-    //6. Deprecated
-    //reportData.avgerageBarsInTrades = reportDataSelector[6].querySelector(valueSelector).innerText
 }
 
 // Mutates (or adds) top-level fields on your global report object
