@@ -38,6 +38,27 @@ Process()
 
 async function Process() {
     var shouldStop = false;
+    let totalIterations = 0
+    let currentIteration = 0
+
+    //Get User Inputs from Storage
+    chrome.storage.local.get("userInputs", function (result) {
+        if (result.userInputs != null) {
+            userInputs = result.userInputs.parameters
+            userInputs.forEach((element, index) => {
+                if (element.type == ParameterType.Numeric) {
+                    userInputs[index].parameterIndex = index
+                    userNumericInputs.push(userInputs[index])
+                }
+            });
+        }
+    });
+
+    chrome.storage.local.get("totalIterations", function (result) {
+        if (result.totalIterations != null) {
+            totalIterations = result.totalIterations
+        }
+    })
     //Construct UserInputs with callback
     var userInputsEventCallback = (event) => {
         let message = event.data
@@ -246,11 +267,11 @@ async function Process() {
                 tvInputs = document.querySelectorAll(tvInputsQuery)
                 // open up dropdown
                 tvInputs[parameterIndex].click()
-                
+
                 await sleep(500)
                 let ddOptionsWrapper = document.querySelector("div[class*='mainContent' i]")
                 let reactPropsKey = Object.keys(ddOptionsWrapper).find(key => key.includes("reactProps"));
-                
+
                 let ddOptions = ddOptionsWrapper[reactPropsKey].children.props.children
                 // click on dropdown
                 for (let i = 0; i < ddOptions.length; i++) {
@@ -312,61 +333,39 @@ function prepareInitialReport() {
 
         // Check if favorite time periods exist  
         if (selectedPeriod != null) {
-            strategyTimePeriod = selectedPeriod.querySelector("div[class*=value]")?.innerHTML
+            strategyTimePeriod = selectedPeriod.querySelector("div[class*=value]")?.innerText
         } else {
-            strategyTimePeriod = timePeriodGroup[1].querySelector("div[class*=value]")?.innerHTML
+            strategyTimePeriod = timePeriodGroup[1].querySelector("div[class*=value]")?.innerText
         }
     }
 
     let title = document.querySelector("title")?.innerText
     let strategySymbol = title.split(' ')[0]
 
-    let userInputsToString = ""
+    let userInputsData = []
 
     userInputs.forEach((element, index) => {
-        if (element.parameterName != null) {
-            let fullName = element.parameterName;
-            let displayName = fullName
-            let needsTooltip = false;
-
-            if (fullName.length > 22) {
-                displayName = displayName.substring(0, 22) + '...';
-                needsTooltip = true
-            }
-
-            if (needsTooltip) {
-                userInputsToString += `<strong 
-                    data-bs-toggle="tooltip" 
-                    title="${fullName}"
-                    >${displayName}</strong>: `;
-            } else {
-                userInputsToString += `<strong>${displayName}</strong>: `;
-            }
+        let inputData = {
+            name: element.parameterName,
+            value: "",
+            type: element.type
         }
+
         switch (element.type) {
             case ParameterType.Numeric:
-                if (index == userInputs.length - 1) {
-                    userInputsToString += element.start + "→" + element.end
-                } else {
-                    userInputsToString += element.start + "→" + element.end + "<br>"
-                }
+                inputData.value = element.start + "→" + element.end;
                 break;
             case ParameterType.Checkbox:
-                if (index == userInputs.length - 1) {
-                    userInputsToString += "on/off"
-                } else {
-                    userInputsToString += "on/off" + "<br>"
-                }
+                inputData.value = "on/off";
                 break;
             case ParameterType.Selectable:
-                if (index == userInputs.length - 1) {
-                    userInputsToString += element.options
-                } else {
-                    userInputsToString += element.options + "<br>"
-                }
+                inputData.value = element.options;
                 break;
         }
 
+        if (inputData.name != null) {
+            userInputsData.push(inputData)
+        }
     })
 
     let reportDataMessage = {
@@ -375,10 +374,14 @@ function prepareInitialReport() {
         "strategyName": strategyName,
         "symbol": strategySymbol,
         "timePeriod": strategyTimePeriod,
-        "parameters": userInputsToString,
+        "parameters": userInputsData,
+        "maxProfit": maxProfit, // NOT READY
+        "reportData": [], // NOT READY
         "maxProfit": maxProfit, // NOT READY
         "reportData": [], // NOT READY
         "status": null, // NOT READY
+        "currentIteration": currentIteration,
+        "totalIterations": totalIterations
     }
 
     return reportDataMessage
@@ -560,6 +563,7 @@ function saveOptimizationReport(optimizationResult, reportData) {
         if (error != null) {
             return error.message
         }
+        currentIteration++
         reportData.detailedParameters = result.detailedParameters
         optimizationHistory.set(parameters, true)
         optimizationResult.set(parameters, reportData)

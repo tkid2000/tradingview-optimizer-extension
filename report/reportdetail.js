@@ -153,27 +153,14 @@ function hideDropDownParameters() {
 
 // non-functional UI changes made with storage
 function updateUserUI() {
-  chrome.storage.local.get("isPlusUser", ({ isPlusUser }) => {
-    if (isPlusUser) {
-      // show plus logo
-      var logo = document.getElementById("normalLogo")
-      logo.style.cssText = 'display:none !important';
-      var plusLogo = document.getElementById("plusLogo")
-      plusLogo.style.cssText = 'display:block !important'
-      // remove plus upgrade button 
-      var plusUpgrade = document.getElementById("plusUpgrade")
-      plusUpgrade.style.display = 'none'
-    } else {
-      // hide plus logo
-      var plusLogo = document.getElementById("plusLogo")
-      plusLogo.style.cssText = 'display:none !important'
-      var logo = document.getElementById("normalLogo")
-      logo.style.cssText = 'display:block !important';
-      // add plus upgrade button 
-      var plusUpgrade = document.getElementById("plusUpgrade")
-      plusUpgrade.style.display = 'block'
-    }
-  });
+  // show plus logo
+  var logo = document.getElementById("normalLogo")
+  logo.style.cssText = 'display:none !important';
+  var plusLogo = document.getElementById("plusLogo")
+  plusLogo.style.cssText = 'display:block !important'
+  // remove plus upgrade button
+  var plusUpgrade = document.getElementById("plusUpgrade")
+  if (plusUpgrade) plusUpgrade.style.display = 'none'
 }
 
 function downloadCSVReport(reportDetailData) {
